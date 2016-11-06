@@ -1,0 +1,13 @@
+
+query buildings a area
+check if street matches criteria, highlight matched criteria
+
+filters Y/N:
+
+	stadium
+	shop:supermarket
+	shop:mall
+	cafe
+	church
+	post-office
+	bank
