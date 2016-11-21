@@ -1,0 +1,61 @@
+<div class="container">
+  <div class="row">
+  <div class="col-md-6">
+    <%= form_tag ({}) do %>
+        <%= select_tag 'pubs', options_for_select(get_pubs(@db_con)), class: 'form-control' %>
+    <% end %>
+    <%= submit_tag 'Pubs', class: 'find' %>
+    <button class="find">find</button>
+  </div>
+  </div>
+</div>
+
+<div class='container' id='map'></div>
+<script>
+    L.mapbox.accessToken = 'pk.eyJ1IjoibWlrZTU1NTEiLCJhIjoiY2l2NnozdnR5MDAwMTJ6cGoyaWthdWpqayJ9.bknUce053UYkW8wNtcvLdg';
+    var map = L.mapbox.map('map')
+            .setView([48.1578, 17.1153], 14);
+
+    L.mapbox.styleLayer('mapbox://styles/mapbox/emerald-v8').addTo(map);
+    var myLayer = L.mapbox.featureLayer().addTo(map);
+//    L.marker([48.1578, 17.1153]).addTo(map)
+
+
+    get_json = function(url){
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function(geojson){
+                console.log(geojson[0]);
+                console.log(geojson[0].geometry.coordinates);
+//                console.log(geojson);
+//                console.log(geojson[0].st_asgeojson);
+                L.mapbox.featureLayer().setGeoJSON(geojson[0]).addTo(map);
+//                  L.marker(geojson[0].geometry.coordinates).addTo(map);
+
+            }
+        });
+    };
+
+    pubs = function(id){
+//        clearMap();
+        get_json('/map/pubs/'+id);
+    };
+
+    pubs_way = function(id){
+        get_json('/map/pubs_way/'+id)
+    }
+$('.find').click(function(e){
+        //logic
+        var pub_id = $('#pubs')[0].value;
+        console.log(pub_id);
+        pubs(pub_id);
+        return false;
+    });
+
+$('.pubs').click(function(){
+        console.log('asda');
+        console.log($('#pubs'));
+    });
+</script>
