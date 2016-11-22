@@ -12,6 +12,39 @@ module MapHelper
     parse_collection con.execute("select osm_id, name from planet_osm_point where amenity = 'pub'").to_a
   end
 
+# bank, bar, cafe, casino, fast_food, gym, hospital, library, maretkplace, nightclue
+  def get_amenities con, type
+    parse_collection con.execute("select osm_id, name from planet_osm_point where amenity = \'#{type}\'").to_a
+  end
+
+  def get_amenities_within con, type, within, center
+    # puts con
+    puts type
+    puts within
+    parse_result con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry,  dist from (
+                                      SELECT osm_id, name, way, ST_Distance(way, (SELECT way from planet_osm_point where osm_id =#{center})) as dist
+                                      FROM planet_osm_point
+                                      where amenity = '#{type}' and osm_id <> #{center}) as SUB where dist < #{within}").to_a
+  end
+
+  def parse_result data
+    # puts data
+    # result = {}
+    i = 0
+    data.each do |t|
+      data[i]['type'] = 'Feature'
+      data[i]['geometry'] = JSON.parse(t['geometry'])
+      data[i]['properties'] = {}
+      data[i]['properties']['description'] = t['name']
+      data[i]['properties']['marker-color'] = '#3ca0d3'
+      data[i]['properties']['marker-size'] = 'large'
+      data[i]['properties']['marker-symbol'] = 'rocket'
+      i = i + 1
+    end
+    puts data
+    data
+  end
+
   def parse_point data
     result = {}
     result['type'] = 'Feature'

@@ -1,12 +1,20 @@
 <div class="container">
   <div class="row">
-  <div class="col-md-6">
-    <%= form_tag ({}) do %>
-        <%= select_tag 'pubs', options_for_select(get_pubs(@db_con)), class: 'form-control' %>
-    <% end %>
-    <%= submit_tag 'Pubs', class: 'find' %>
-    <button class="find">find</button>
-  </div>
+    <div class="col-md-2">
+      <button class="clear">Clear</button>
+    </div>
+    <div class="col-md-2">
+      <%= form_tag ({}) do %>
+          <%= select_tag 'pubs', options_for_select(get_amenities(@db_con, 'pub')), class: 'form-control' %>
+      <% end %>
+      <%= submit_tag 'Pubs', class: 'pub' %>
+    </div>
+    <div class="col-md-2">
+      <%= form_tag ({}) do %>
+          <%= select_tag 'restaurant', options_for_select(get_amenities(@db_con, 'restaurant')), class: 'form-control' %>
+      <% end %>
+      <%= submit_tag 'Restaurants', class: 'restaurant' %>
+    </div>
   </div>
 </div>
 
@@ -18,8 +26,12 @@
 
     L.mapbox.styleLayer('mapbox://styles/mapbox/emerald-v8').addTo(map);
     var myLayer = L.mapbox.featureLayer().addTo(map);
-//    L.marker([48.1578, 17.1153]).addTo(map)
-
+    //    L.marker([48.1578, 17.1153]).addTo(map)
+    var center = {
+            "type": "Feature",
+            "geometry": {
+                "type":"Point",
+                "coordinates":[17.0688070566957,48.1479875068404]}};
 
     get_json = function(url){
         $.ajax({
@@ -27,11 +39,11 @@
             url: url,
             dataType: "json",
             success: function(geojson){
-                console.log(geojson[0]);
-                console.log(geojson[0].geometry.coordinates);
-//                console.log(geojson);
-//                console.log(geojson[0].st_asgeojson);
-                L.mapbox.featureLayer().setGeoJSON(geojson[0]).addTo(map);
+                console.log(url);
+                console.log(geojson.length);
+                for(var i=0; i<geojson.length; i++) {
+                    L.mapbox.featureLayer().setGeoJSON(geojson[i]).addTo(map);
+                }
 //                  L.marker(geojson[0].geometry.coordinates).addTo(map);
 
             }
@@ -45,17 +57,51 @@
 
     pubs_way = function(id){
         get_json('/map/pubs_way/'+id)
-    }
-$('.find').click(function(e){
+    };
+
+
+    get_object = function(id, type){
+        get_json('/map/'+ type + '/' + id)
+    };
+
+    get_within = function(type, within){
+        get_json('/map/within/'+type+'/'+within+'/'+1798714617)
+    };
+
+    $('.pub').click(function(e){
         //logic
         var pub_id = $('#pubs')[0].value;
         console.log(pub_id);
         pubs(pub_id);
         return false;
     });
-
-$('.pubs').click(function(){
-        console.log('asda');
-        console.log($('#pubs'));
+    $('.restaurant').click(function(e){
+        //logic
+        var id = $('#restaurants')[0].value;
+        console.log(id);
+        get_object(id, 'restaurant');
+        return false;
     });
+    $('.clear').click(function(e){
+        get_within('pub',2200)
+    });
+
+    map.on('click', function (e) {
+        var features = map.queryRenderedFeatures(e.point);
+
+        if (!features.length) {
+            return;
+        }
+
+        var feature = features[0];
+
+        // Populate the popup and set its coordinates
+        // based on the feature found.
+        var popup = new mapboxgl.Popup()
+                .setLngLat(feature.geometry.coordinates)
+                .setHTML(feature.properties.description)
+                .addTo(map);
+    });
+
+
 </script>

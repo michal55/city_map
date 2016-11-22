@@ -21,6 +21,11 @@ class MapController < ApplicationController
     render json: @geojson
   end
 
+  def within
+    @geojson = get_amenities_within @db_con, params[:type], params[:within], params[:center]
+    render json: @geojson
+  end
+
   def connect
     @db_con = ActiveRecord::Base.connection
   end
