@@ -1,43 +1,19 @@
 module MapHelper
-
-  def get_pub(con, id)
-    parse con.execute("select osm_id, name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry from planet_osm_point where amenity = 'pub' and osm_id =#{id}").to_a
-  end
-
-  def get_pub_way con, id
-    parse_point con.execute("select ST_AsGeoJSON(ST_Transform(way,4326)) as geometry from planet_osm_point where amenity = 'pub' and osm_id =#{id}").to_a
-  end
-
-  def get_pubs con
-    parse_collection con.execute("select osm_id, name from planet_osm_point where amenity = 'pub'").to_a
-  end
-
-# bank, bar, cafe, casino, fast_food, gym, hospital, library, maretkplace, nightclue
-  def get_places_by_amenity con, type
-    parse_collection con.execute("select osm_id, name from planet_osm_point where amenity = \'#{type}\'").to_a
-  end
-
-  def get_amenities con
-    amenities = con.execute("select distinct(amenity) as name from planet_osm_point where amenity != '' order by name").to_a
-    result = []
-    (0..amenities.size).each { |i| result.push(amenities[i]['name']) unless amenities[i].nil?}
-    puts result
-    result
-  end
-
-  def get_amenities_within con, type, within, center
-    puts "helper\n"
-    puts type
-    puts within
-    puts center
-    parse_result con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
+  
+  def get_amenities_within con, type, within, center, color
+    parse_result type, color, con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
                     FROM planet_osm_point
                     WHERE ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.54})
-                    AND amenity = '#{type}'").to_a
-    # and osm_id <> 1798714617
+                    AND amenity = '#{type}'
+                    UNION
+                    SELECT name, ST_AsGeoJSON(ST_Transform(ST_Centroid(way),4326)) as geometry
+                    FROM planet_osm_polygon
+                    WHERE ST_Dwithin(ST_Centroid(way), ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.54})
+                    AND amenity = '#{type}'
+                    ").to_a
   end
 
-  def parse_result data
+  def parse_result type, color, data
     # puts data
     # result = {}
     i = 0
@@ -46,9 +22,9 @@ module MapHelper
       data[i]['geometry'] = JSON.parse(t['geometry'])
       data[i]['properties'] = {}
       data[i]['properties']['description'] = t['name']
-      data[i]['properties']['marker-color'] = '#3ca0d3'
+      data[i]['properties']['marker-color'] = color
       data[i]['properties']['marker-size'] = 'large'
-      data[i]['properties']['marker-symbol'] = 'rocket'
+      data[i]['properties']['marker-symbol'] = get_icon(type)
       i = i + 1
     end
     # puts data
@@ -88,5 +64,40 @@ module MapHelper
     end
     # puts result
     result
+  end
+
+  def get_icon type
+    case type
+    when 'pub'
+      'beer'
+    when 'bar'
+      'bar'
+    when 'hospital', 'doctors'
+      'hospital'
+    when 'restaurant'
+      'restaurant'
+    when 'food-cort'
+      'fast-food'
+    when 'cafe'
+      'cafe'
+    when 'bank', 'atm'
+      'bank'
+    when 'cinema'
+      'cinema'
+    when 'library'
+      'library'
+    when 'marketplace'
+      'shop'
+    when 'pharmacy'
+      'pharmacy'
+    when 'police'
+      'police'
+    when 'post'
+      'post'
+    when 'place-of-worship'
+      'religious-christian'
+    else
+      'circle'
+    end
   end
 end

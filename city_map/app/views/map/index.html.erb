@@ -1,21 +1,24 @@
 <div class="container">
   <div class="row">
-    <div class="col-md-2">
-      <button class="clear">Clear</button>
-      <button class="center">Center</button>
-    </div>
     <table>
       <tr>
+        <th></th>
         <th>
           Amenity
         </th>
         <th>
-          Diameter distance(m)
+          Diameter(m)
+        </th>
+        <th>
+          Color(hex)
         </th>
         <th>
         </th>
       </tr>
       <tr>
+        <td>
+          <button class="clear btn btn-primary">Clear</button>
+        </td>
         <td>
           <%= select_tag 'amenity', options_for_select(get_amenities(@db_con)), class: 'form-control' %>
         </td>
@@ -23,7 +26,10 @@
           <%= text_field_tag 'distance', nil, class: 'form-control' %>
         </td>
         <td>
-          <button class="amenity">Type</button>
+          <%= text_field_tag 'color', nil, class: 'form-control' %>
+        </td>
+        <td>
+          <button class="amenity btn btn-primary">Type</button>
         </td>
       </tr>
     </table>
@@ -41,10 +47,11 @@
 
     L.mapbox.styleLayer('mapbox://styles/mapbox/emerald-v8').addTo(map);
     var myLayer = L.mapbox.featureLayer().addTo(map);
+    var layer_count = -1;
 
     center_marker = L.marker(new L.LatLng(48.1578, 17.1153), {
         draggable: true
-            }).addTo(map);
+        }).addTo(map);
 
     var geoJSONs = [];
     var center = {
@@ -54,6 +61,7 @@
                 "coordinates":[17.0688070566957,48.1479875068404]}};
 
     get_json = function(url){
+        console.log(url);
         $.ajax({
             type: "GET",
             url: url,
@@ -63,70 +71,43 @@
                 if(geojson == null)
                     return;
                 console.log(geojson.length);
+                layer_count++;
+                geoJSONs[layer_count] = new Array(geojson.length);
                 for(var i=0; i<geojson.length; i++) {
-                    geoJSONs[i] = L.mapbox.featureLayer().setGeoJSON(geojson[i]).addTo(map);
+                    geoJSONs[layer_count][i] = L.mapbox.featureLayer().setGeoJSON(geojson[i]).addTo(map);
                 }
             }
         });
     };
 
-    pubs = function(id){
-        get_json('/map/pubs/'+id);
-    };
-
-    pubs_way = function(id){
-        get_json('/map/pubs_way/'+id)
-    };
-
-
-    get_object = function(id, type){
-        get_json('/map/'+ type + '/' + id)
-    };
-
-    get_geometry = function(coordinates){
-        console.log(coordinates);
-        get_json('/map/geometry/'+coordinates);
-    };
-
-    get_within = function(type, within){
+    get_within = function(type, within, color){
         var lng = String(center_marker._latlng.lng).replace(".","_");
         var lat = String(center_marker._latlng.lat).replace(".","_");
-        console.log(lat+'+'+lng);
-        get_json('/map/within/'+type+'/'+within+'/'+lat+'+'+lng)
+        console.log(color);
+        get_json('/map/within/'+type+'/'+within+'/'+lat+'+'+lng+'/'+color);
     };
 
-
-    $('.pub').click(function(e){
-        //logic
-        var pub_id = $('#pubs')[0].value;
-        console.log(pub_id);
-        pubs(pub_id);
-        return false;
-    });
-    $('.restaurant').click(function(e){
-        //logic
-        var id = $('#restaurants')[0].value;
-        console.log(id);
-        get_object(id, 'restaurant');
-        return false;
-    });
     $('.clear').click(function(e){
-        for(var i=0; i<geoJSONs.length; i++) {
-            geoJSONs[i].clearLayers();
+        console.log(center_marker);
+        if(geoJSONs[layer_count] == null)
+            return;
+        for(var i=0; i<geoJSONs[layer_count].length; i++) {
+            if(geoJSONs[layer_count][i] == null)
+                break;
+            geoJSONs[layer_count][i].clearLayers();
         }
+        layer_count--;
     });
     $('.amenity').click(function(e){
-        get_within($('#amenity')[0].value, $('#distance')[0].value)
-    });
-    $('.center').click(function(e){
-        console.log(center_marker);
-//        var lat = center_marker._latlng.lat.replace(".","_");
-//        var lat = center_marker._latlng.lat;
-        var lng = String(center_marker._latlng.lng).replace(".","_");
-        var lat = String(center_marker._latlng.lat).replace(".","_");
-        console.log(lat);
-        console.log(lng);
-        get_geometry(lat+'+'+lng);
+        var color = $('#color')[0].value;
+        if(color == null){
+            color = '#00CC00';
+        }
+        if(color[0]=='#'){
+            color = color.substring(1,7);
+        }
+        console.log("color: "+color);
+        get_within($('#amenity')[0].value, $('#distance')[0].value, color)
     });
 
     map.on('click', function (e) {
