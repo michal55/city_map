@@ -8,7 +8,10 @@ Rails.application.routes.draw do
   get 'map/pubs/:id' => 'map#pub'
   get 'map/pubs_way/:id' => 'map#pub_way'
 
-  get 'map/within/:type/:within/:center' => 'map#within'
+  get 'map/within/:type/:within/:coordinates' => 'map#within'
+  get 'map/amenities' => 'map#amenities'
+
+  get 'map/geometry/:coordinates' => 'map#geometry'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

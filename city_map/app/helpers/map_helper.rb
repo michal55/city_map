@@ -13,18 +13,28 @@ module MapHelper
   end
 
 # bank, bar, cafe, casino, fast_food, gym, hospital, library, maretkplace, nightclue
-  def get_amenities con, type
+  def get_places_by_amenity con, type
     parse_collection con.execute("select osm_id, name from planet_osm_point where amenity = \'#{type}\'").to_a
   end
 
+  def get_amenities con
+    amenities = con.execute("select distinct(amenity) as name from planet_osm_point where amenity != '' order by name").to_a
+    result = []
+    (0..amenities.size).each { |i| result.push(amenities[i]['name']) unless amenities[i].nil?}
+    puts result
+    result
+  end
+
   def get_amenities_within con, type, within, center
-    # puts con
+    puts "helper\n"
     puts type
     puts within
-    parse_result con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry,  dist from (
-                                      SELECT osm_id, name, way, ST_Distance(way, (SELECT way from planet_osm_point where osm_id =#{center})) as dist
-                                      FROM planet_osm_point
-                                      where amenity = '#{type}' and osm_id <> #{center}) as SUB where dist < #{within}").to_a
+    puts center
+    parse_result con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
+                    FROM planet_osm_point
+                    WHERE ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.54})
+                    AND amenity = '#{type}'").to_a
+    # and osm_id <> 1798714617
   end
 
   def parse_result data
@@ -41,7 +51,7 @@ module MapHelper
       data[i]['properties']['marker-symbol'] = 'rocket'
       i = i + 1
     end
-    puts data
+    # puts data
     data
   end
 
@@ -63,6 +73,7 @@ module MapHelper
     data.each do |t|
       result[t['name']] = t['osm_id']
     end
+    # puts result
     result
   end
 
@@ -75,7 +86,7 @@ module MapHelper
       result[0]['properties']['marker-size'] = 'large'
       result[0]['properties']['marker-symbol'] = 'rocket'
     end
-    puts result
+    # puts result
     result
   end
 end

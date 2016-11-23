@@ -22,7 +22,29 @@ class MapController < ApplicationController
   end
 
   def within
-    @geojson = get_amenities_within @db_con, params[:type], params[:within], params[:center]
+    coordinates = []
+    params[:coordinates].split('+').each {|t|
+      coordinates.push t.sub('_','.').to_f
+    }
+    puts "controler: #{coordinates}"
+    @geojson = get_amenities_within @db_con, params[:type], params[:within], coordinates
+    render json: @geojson
+  end
+
+  # def amenities
+  #   @geojson = get_amenities @db_con
+  #   render json: @geojson
+  # end
+
+
+  def geometry
+    coordinates = []
+    params[:coordinates].split('+').each {|t|
+      coordinates.push t.sub('_','.').to_f
+    }
+    puts "controler: #{coordinates}"
+    # puts params[:type]
+    get_amenities_within @db_con, params[:type], params[:within], center
     render json: @geojson
   end
 
