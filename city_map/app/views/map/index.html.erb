@@ -7,17 +7,19 @@
           Amenity
         </th>
         <th>
-          Diameter(m)
+          Radius(m)
         </th>
         <th>
           Color(hex)
         </th>
         <th>
         </th>
+        <th>
+        </th>
       </tr>
       <tr>
         <td>
-          <button class="clear btn btn-primary">Clear</button>
+          <button class="clear btn btn-danger">Clear</button>
         </td>
         <td>
           <%= select_tag 'amenity', options_for_select(get_amenities(@db_con)), class: 'form-control' %>
@@ -29,7 +31,10 @@
           <%= text_field_tag 'color', nil, class: 'form-control' %>
         </td>
         <td>
-          <button class="amenity btn btn-primary">Type</button>
+          <button class="amenity btn btn-success">Add</button>
+        </td>
+        <td>
+          <button class="radius btn btn-primary">Radilus On/Off</button>
         </td>
       </tr>
     </table>
@@ -48,12 +53,15 @@
     L.mapbox.styleLayer('mapbox://styles/mapbox/emerald-v8').addTo(map);
     var myLayer = L.mapbox.featureLayer().addTo(map);
     var layer_count = -1;
+    var circles_showing = false;
 
     center_marker = L.marker(new L.LatLng(48.1578, 17.1153), {
         draggable: true
         }).addTo(map);
+    console.log(center_marker);
 
     var geoJSONs = [];
+    var circles = [];
     var center = {
             "type": "Feature",
             "geometry": {
@@ -85,6 +93,7 @@
         var lat = String(center_marker._latlng.lat).replace(".","_");
         console.log(color);
         get_json('/map/within/'+type+'/'+within+'/'+lat+'+'+lng+'/'+color);
+        circles.push(L.circle([center_marker._latlng.lat,center_marker._latlng.lng], within));
     };
 
     $('.clear').click(function(e){
@@ -96,6 +105,9 @@
                 break;
             geoJSONs[layer_count][i].clearLayers();
         }
+        if ( circles_showing )
+            map.removeLayer(circles[layer_count]);
+        circles.pop();
         layer_count--;
     });
     $('.amenity').click(function(e){
@@ -109,7 +121,15 @@
         console.log("color: "+color);
         get_within($('#amenity')[0].value, $('#distance')[0].value, color)
     });
-
+    $('.radius').click(function(e){
+        for(var i=0; i<circles.length; i++){
+            if ( circles_showing )
+                map.removeLayer(circles[i]);
+            else
+                circles[i].addTo(map);
+        }
+        circles_showing = !circles_showing;
+    });
     map.on('click', function (e) {
         var features = map.queryRenderedFeatures(e.point);
 
