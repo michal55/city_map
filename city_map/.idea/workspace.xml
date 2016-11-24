@@ -98,8 +98,8 @@
       <file leaf-file-name="map_helper.rb" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/helpers/map_helper.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.017838405">
-              <caret line="1" column="2" selection-start-line="1" selection-start-column="2" selection-end-line="1" selection-end-column="2" />
+            <state vertical-scroll-proportion="0.33892968">
+              <caret line="19" column="156" selection-start-line="19" selection-start-column="154" selection-end-line="19" selection-end-column="156" />
               <folding />
             </state>
           </provider>
@@ -1038,8 +1038,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/helpers/map_helper.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.017838405">
-          <caret line="1" column="2" selection-start-line="1" selection-start-column="2" selection-end-line="1" selection-end-column="2" />
+        <state vertical-scroll-proportion="0.33892968">
+          <caret line="19" column="156" selection-start-line="19" selection-start-column="154" selection-end-line="19" selection-end-column="156" />
           <folding />
         </state>
       </provider>

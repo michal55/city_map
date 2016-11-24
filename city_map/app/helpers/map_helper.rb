@@ -1,5 +1,14 @@
 module MapHelper
-  
+
+
+  def get_amenities con
+    amenities = con.execute("select distinct(amenity) as name from planet_osm_point where amenity != '' order by name").to_a
+    result = []
+    (0..amenities.size).each { |i| result.push(amenities[i]['name']) unless amenities[i].nil?}
+    puts result
+    result
+  end
+
   def get_amenities_within con, type, within, center, color
     parse_result type, color, con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
                     FROM planet_osm_point
