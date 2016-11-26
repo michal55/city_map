@@ -5,13 +5,17 @@ Rails.application.routes.draw do
   # You can have the root of your site routed with "root"
   root 'map#index'
 
-  get 'map/pubs/:id' => 'map#pub'
-  get 'map/pubs_way/:id' => 'map#pub_way'
+  # get 'map/pubs/:id' => 'map#pub'
+  # get 'map/pubs_way/:id' => 'map#pub_way'
 
   get 'map/within/:type/:within/:coordinates/:color' => 'map#within'
-  get 'map/amenities' => 'map#amenities'
+  # get 'map/amenities' => 'map#amenities'
 
-  get 'map/geometry/:coordinates' => 'map#geometry'
+  # get 'map/geometry/:coordinates' => 'map#geometry'
+  get 'map/within/polygon/:id' => 'map#polygon'
+
+  get 'map/streets_within/:type/:within/:coordinates/:color/:streets_within/:number_of' => 'map#streets_within'
+
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

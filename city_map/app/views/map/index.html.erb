@@ -10,9 +10,13 @@
           Radius(m)
         </th>
         <th>
+          Streets within(m)
+        </th>
+        <th>
           Color(hex)
         </th>
         <th>
+          Number of
         </th>
         <th>
         </th>
@@ -25,13 +29,22 @@
           <%= select_tag 'amenity', options_for_select(get_amenities(@db_con)), class: 'form-control' %>
         </td>
         <td>
-          <%= text_field_tag 'distance', nil, class: 'form-control' %>
+          <%= text_field_tag 'distance', nil, class: 'form-control input' %>
         </td>
         <td>
-          <%= text_field_tag 'color', nil, class: 'form-control' %>
+          <%= text_field_tag 'streets_within', nil, class: 'form-control input' %>
+        </td>
+        <td>
+          <%= text_field_tag 'color', nil, class: 'form-control input-small' %>
+        </td>
+        <td>
+          <%= text_field_tag 'number', nil, class: 'form-control input-small' %>
         </td>
         <td>
           <button class="amenity btn btn-success">Add</button>
+        </td>
+        <td>
+          <button class="streets btn btn-success">Streets</button>
         </td>
         <td>
           <button class="radius btn btn-primary">Radilus On/Off</button>
@@ -41,6 +54,16 @@
     <div class="col-md-1">
 
     </div>
+  </div>
+  <div class="row">
+    <table>
+      <td>
+        <%= text_field_tag 'polygon', nil, class: 'form-control', style: "width: 100px" %>
+      </td>
+      <td>
+        <button class="polygon btn btn-primary">ID</button>
+      </td>
+    </table>
   </div>
 </div>
 
@@ -76,9 +99,10 @@
             dataType: "json",
             success: function(geojson){
                 console.log(url);
-                if(geojson == null)
+                console.log('geojson: '+geojson);
+                if(geojson == null) {
                     return;
-                console.log(geojson.length);
+                }
                 layer_count++;
                 geoJSONs[layer_count] = new Array(geojson.length);
                 for(var i=0; i<geojson.length; i++) {
@@ -94,6 +118,20 @@
         console.log(color);
         get_json('/map/within/'+type+'/'+within+'/'+lat+'+'+lng+'/'+color);
         circles.push(L.circle([center_marker._latlng.lat,center_marker._latlng.lng], within));
+    };
+
+
+    get_streets_within = function(type, within, color, streets_within, number_of){
+        var lng = String(center_marker._latlng.lng).replace(".","_");
+        var lat = String(center_marker._latlng.lat).replace(".","_");
+        console.log(color);
+        get_json('/map/streets_within/'+type+'/'+within+'/'+lat+'+'+lng+'/'+color+'/'+streets_within+'/'+number_of);
+//        circles.push(L.circle([center_marker._latlng.lat,center_marker._latlng.lng], within));
+    };
+
+
+    get_polygon = function(id){
+        get_json('/map/within/polygon/'+id);
     };
 
     $('.clear').click(function(e){
@@ -129,6 +167,21 @@
                 circles[i].addTo(map);
         }
         circles_showing = !circles_showing;
+    });
+    $('.polygon').click(function(e){
+       get_polygon($('#polygon')[0].value);
+    });
+
+    $('.streets').click(function(e){
+        var color = $('#color')[0].value;
+        if(color == null){
+            color = '#00CC00';
+        }
+        if(color[0]=='#'){
+            color = color.substring(1,7);
+        }
+//        console.log($('#streets_within')[0].value);
+        get_streets_within($('#amenity')[0].value, $('#distance')[0].value, color, $('#streets_within')[0].value, $('#number')[0].value);
     });
     map.on('click', function (e) {
         var features = map.queryRenderedFeatures(e.point);

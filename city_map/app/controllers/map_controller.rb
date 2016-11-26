@@ -12,6 +12,20 @@ class MapController < ApplicationController
     render json: @geojson
   end
 
+  def polygon
+    @geojson = get_polygon_by_id @db_con, params[:id]
+    render json: @geojson
+  end
+
+  def streets_within
+    coordinates = []
+    params[:coordinates].split('+').each {|t|
+      coordinates.push t.sub('_','.').to_f
+    }
+    @geojson = get_streets_within @db_con, params[:type], params[:within], coordinates, params[:color], params[:streets_within], params[:number_of]
+    render json: @geojson
+  end
+
   # def amenities
   #   @geojson = get_amenities @db_con
   #   render json: @geojson

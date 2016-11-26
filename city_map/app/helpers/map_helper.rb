@@ -10,19 +10,50 @@ module MapHelper
   end
 
   def get_amenities_within con, type, within, center, color
-    parse_result type, color, con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
+    parse_result type, color, false, con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
                     FROM planet_osm_point
-                    WHERE ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.54})
+                    WHERE ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.5})
                     AND amenity = '#{type}'
                     UNION
                     SELECT name, ST_AsGeoJSON(ST_Transform(ST_Centroid(way),4326)) as geometry
                     FROM planet_osm_polygon
-                    WHERE ST_Dwithin(ST_Centroid(way), ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.54})
+                    WHERE ST_Dwithin(ST_Centroid(way), ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.5})
                     AND amenity = '#{type}'
                     ").to_a
   end
 
-  def parse_result type, color, data
+  def get_streets_within con, type, within, center, color, streets_within, number_of
+    parse_result type, color, true, con.execute("
+            SELECT name, ST_AsGeoJSON(ST_Transform(ST_Centroid(way),4326)) as geometry FROM planet_osm_line WHERE osm_id IN
+               (SELECT R.osm_id from (
+                SELECT STREETS.osm_id, count(PUBS.osm_id) from
+                (select name, osm_id, way from (select *, row_number() over (partition by name order by osm_id) as RowNum
+                from planet_osm_line where highway = 'residential' and ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.5})) source
+                where RowNum = 1) STREETS join
+                (SELECT osm_id, way from planet_osm_point
+                WHERE amenity = '#{type}' AND
+                ST_Dwithin(way, ST_Transform(ST_SetSRID(ST_MakePoint('#{center[1]}', '#{center[0]}'),4326),900913),#{within.to_f*1.5})) PUBS
+                on ST_Dwithin(STREETS.way, PUBS.way, #{streets_within.to_f*1.5})
+                GROUP BY STREETS.osm_id) R where R.count >= #{number_of})").to_a
+  end
+
+
+  def get_polygon_by_id con, id
+    # data = con.execute("select name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry from planet_osm_polygon where amenity = 'university' and osm_id = #{id}").to_a
+    data = con.execute("select name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry from planet_osm_line where osm_id = #{id}").to_a
+    i = 0
+    data.each do |t|
+      data[i]['type'] = 'Feature'
+      data[i]['geometry'] = JSON.parse(t['geometry'])
+      data[i]['properties'] = {}
+      data[i]['properties']['description'] = t['name']
+      i = i + 1
+    end
+    puts data
+    data
+  end
+
+  def parse_result type, color, street, data
     # puts data
     # result = {}
     i = 0
@@ -33,7 +64,7 @@ module MapHelper
       data[i]['properties']['description'] = t['name']
       data[i]['properties']['marker-color'] = color
       data[i]['properties']['marker-size'] = 'large'
-      data[i]['properties']['marker-symbol'] = get_icon(type)
+      data[i]['properties']['marker-symbol'] = get_icon(type) unless street
       i = i + 1
     end
     # puts data
