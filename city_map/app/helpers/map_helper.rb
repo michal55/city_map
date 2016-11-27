@@ -9,6 +9,37 @@ module MapHelper
     result
   end
 
+  def get_names con
+    names = con.execute("select distinct(name) as name from planet_osm_point where name <> ''
+                         union select distinct(name) as name from planet_osm_polygon where name <> ''
+                         union select distinct(name) as name from planet_osm_line order by name").to_a
+    result = []
+    (0..names.size).each { |i| result.push(names[i]['name']) unless names[i].nil?}
+    result
+  end
+
+  def find_by_name con, name, color
+    objects = con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
+                  FROM  planet_osm_point where name = '#{name}'
+                  UNION select name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry FROM planet_osm_polygon WHERE name = '#{name}'
+                  UNION SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry FROM planet_osm_line WHERE name = '#{name}'").to_a
+    i = 0
+    objects.each do |t|
+      objects[i]['type'] = 'Feature'
+      objects[i]['geometry'] = JSON.parse(t['geometry'])
+      objects[i]['properties'] = {}
+      objects[i]['properties']['description'] = t['name']
+      if objects[i]['geometry']['type'].eql?('Point')
+        objects[i]['properties']['marker-color'] = color
+        objects[i]['properties']['marker-size'] = 'large'
+        objects[i]['properties']['marker-symbol'] = 'pub'
+      end
+      i = i + 1
+    end
+    puts objects
+    objects
+  end
+
   def get_amenities_within con, type, within, center, color
     parse_result type, color, false, con.execute("SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry
                     FROM planet_osm_point

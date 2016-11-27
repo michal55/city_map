@@ -26,6 +26,11 @@ class MapController < ApplicationController
     render json: @geojson
   end
 
+  def find
+    @geojson = find_by_name @db_con, params[:name], params[:color]
+    puts @geojson
+    render json: @geojson
+  end
   # def amenities
   #   @geojson = get_amenities @db_con
   #   render json: @geojson
