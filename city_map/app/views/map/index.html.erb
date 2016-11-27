@@ -195,7 +195,7 @@
     $('.find_button').click(function(e){
         var color = $('#color')[0].value;
         console.log(color);
-        if(color == ''){
+        if(color.length < 6){
             color = '#888888';
         }
         if(color[0]=='#'){
@@ -211,6 +211,10 @@
         }
 
         var feature = features[0];
+
+        if ( feature.geometry.type == 'Linestring' ) {
+            find_by_name(feature.name);
+        }
 
         // Populate the popup and set its coordinates
         // based on the feature found.
