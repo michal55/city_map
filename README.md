@@ -5,16 +5,19 @@
 ### 1. Find all locations of selected type (hospital, restaurant) in a selected radius. Center of the radius is a draggable marker.
 
 All restaurant within 1000 meters from my marker. We can highlight the radius with the Radius On/Off button. The color of the markers is set to orange (EEAA00) and the Maki icon is determined by the amenity. Clicking on a marker shows the amenity's name.
+
 ![](https://github.com/michal55/city_map/blob/master/doc/PDT_1.png)
 
 ### 2. Find all residential streets which are within a certian distance from at least X selected amenities (from previous UC).
 
-All residential streets within 100 meters from at least 2 restaurants (that are within 1000 meters from my marker)/
+All residential streets within 100 meters from at least 2 restaurants (that are within 1000 meters from my marker)
+
 ![](https://github.com/michal55/city_map/blob/master/doc/pdt_2.png)
 
 ### 3. Find an amenity by name.
 
 All points and polygons with the name attribute = 'Aupark' (blue) and 'Eurovea' (green).
+
 ![](https://github.com/michal55/city_map/blob/master/doc/pdt_3.png)
 
 ## Data
