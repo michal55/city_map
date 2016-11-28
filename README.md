@@ -1,5 +1,5 @@
 # CityMap
-## Semestral project for my Advanced Database Technologies course (www2.fiit.stuba.sk/~kuric/PDT/excersises)
+## Semestral project for my [Advanced Database Technologies](www2.fiit.stuba.sk/~kuric/PDT/excersises) course @ FIIT STU 2016
 
 ## Use cases
 ### 1. Find all locations of selected type (hospital, restaurant) in a selected radius. Center of the radius is a draggable marker.
