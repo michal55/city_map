@@ -64,7 +64,7 @@ module MapHelper
   end
 
   def get_streets_within con, type, within, center, color, streets_within, number_of
-    
+
     parse_result type, color, con.execute("
           SELECT name, ST_AsGeoJSON(ST_Transform(way,4326)) as geometry FROM planet_osm_line WHERE osm_id IN
               (SELECT R.osm_id from (
