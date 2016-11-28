@@ -4,8 +4,6 @@ Rails.application.routes.draw do
 
   get 'map/within/:type/:within/:coordinates/:color' => 'map#within'
 
-  get 'map/within/polygon/:id' => 'map#polygon'
-
   get 'map/streets_within/:type/:within/:coordinates/:color/:streets_within/:number_of' => 'map#streets_within'
 
   get 'map/find/:name/:color' => 'map#find'
